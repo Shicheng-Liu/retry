@@ -13,9 +13,9 @@ export TOKENIZERS_PARALLELISM=False
 
 DEV=1
 PORT=1236
-DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/dataset/Dahoas/full-hh-rlhf"
-ACTOR_MODEL_PATH=~/workspace/siyuan/retry/step1_supervised_finetuning/output/opt-1.3b/Dahoas/full-hh-rlhf
-REWARD_MODEL_PATH=~/workspace/siyuan/retry/step2_reward_model_finetuning/output/opt-1.3b/Dahoas/full-hh-rlhf
+DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/dataset/tldr"
+ACTOR_MODEL_PATH=~/workspace/siyuan/retry/step1_supervised_finetuning/output/opt-1.3b/tldr
+REWARD_MODEL_PATH=~/workspace/siyuan/retry/step2_reward_model_finetuning/output/opt-1.3b/tldr
 ACTOR_ZERO_STAGE=2
 REWARD_ZERO_STAGE=3
 REFERENCE_ZERO_STAGE=3
@@ -23,7 +23,7 @@ OUTPUT=$1
 SEED=2023
 
 if [ "$OUTPUT" == "" ]; then
-    OUTPUT=./output/opt-1.3b/Dahoas/full-hh-rlhf
+    OUTPUT=./output/opt-1.3b/tldr
 fi
 
 mkdir -p $OUTPUT
