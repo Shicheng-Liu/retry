@@ -1,15 +1,21 @@
 #!/bin/bash
-set -e
 set -x
-
 export HF_DATASETS_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
+export OMP_NUM_THREADS=4
+export MKL_NUM_THREADS=4
+export NUMEXPR_NUM_THREADS=4
+export OPENBLAS_NUM_THREADS=4
+export RAYON_NUM_THREADS=20
+export TOKENIZERS_PARALLELISM=False
 
-# DeepSpeed Team
-DATA_PATH="/home/znli/datasets/rm-static"
-BASE_PATH="/home/znli/models"
-ACTOR_MODEL_PATH="${BASE_PATH}/opt_1.3b_sft"
-REWARD_MODEL_PATH="${BASE_PATH}/opt_350m_reward"
+#~/workspace/siyuan/ReMax/step1_supervised_finetuning/output/opt-1.3b/Dahoas/full-hh-rlhf
+
+DEV=1
+PORT=1236
+DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/ReMax/dataset/Dahoas/full-hh-rlhf"
+ACTOR_MODEL_PATH=facebook/opt-1.3b
+REWARD_MODEL_PATH=~/workspace/siyuan/ReMax/step2_reward_model_finetuning/output/opt-1.3b/Dahoas/full-hh-rlhf
 ACTOR_ZERO_STAGE=2
 REWARD_ZERO_STAGE=3
 REFERENCE_ZERO_STAGE=3
@@ -17,8 +23,7 @@ OUTPUT=$1
 SEED=2023
 
 if [ "$OUTPUT" == "" ]; then
-    TIME_STEP=`date "+%Y-%m-%d-%H-%M-%S"`
-    OUTPUT="./log/step3_remax-facebook_opt_1.3b-$TIME_STEP-$SEED"
+    OUTPUT=./output/opt-1.3b/Dahoas/full-hh-rlhf
 fi
 
 mkdir -p $OUTPUT
@@ -26,7 +31,8 @@ mkdir -p $OUTPUT
 
 ACTOR_LR=1e-6
 
-deepspeed --master_port 12346 main.py \
+(deepspeed --include localhost:$DEV --master_port $PORT \
+main.py \
    --algo "remax" \
    --data_path $DATA_PATH \
    --data_output_path "/tmp/data_files/opt" \
@@ -57,9 +63,12 @@ deepspeed --master_port 12346 main.py \
    --actor_zero_stage $ACTOR_ZERO_STAGE \
    --reward_zero_stage $REWARD_ZERO_STAGE \
    --reference_zero_stage $REFERENCE_ZERO_STAGE \
-   --enable_hybrid_engine \
    --output_dir $OUTPUT \
    --enable_tensorboard \
+   --enable_hybrid_engine \
    --print_answers \
    --save_answers \
-   &> $OUTPUT/training.log
+   --deepspeed --output_dir $OUTPUT) 2>&1 | tee $OUTPUT/training.log
+
+
+#--enable_hybrid_engine \
