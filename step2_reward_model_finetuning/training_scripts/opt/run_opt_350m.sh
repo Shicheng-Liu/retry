@@ -13,7 +13,7 @@ DEV=4,5
 PORT=2742
 OUTPUT=$1
 ZERO_STAGE=2
-DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/ReMax/dataset/Dahoas/full-hh-rlhf"
+DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/dataset/Dahoas/full-hh-rlhf"
 MODEL_NAME="facebook/opt-350m"
 SEED=1234
 
