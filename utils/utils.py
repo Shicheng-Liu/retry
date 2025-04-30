@@ -19,29 +19,29 @@ def print_rank_0(msg, rank=0):
         print(msg)
 
 
-# def to_device(batch, device):
-#     output = {}
-#     for k, v in batch.items():
-#         try:
-#             output[k] = v.to(device)
-#         except Exception as e:
-#             print("to device error: {}".format(e))
-#             assert 0
-#             output[k] = v
-#     return output
-
 def to_device(batch, device):
     output = {}
     for k, v in batch.items():
         try:
-            print(f"[to_device] Moving key '{k}': shape={getattr(v, 'shape', None)}, dtype={getattr(v, 'dtype', None)}")
             output[k] = v.to(device)
         except Exception as e:
-            print(f"[ERROR] Failed to move key '{k}' to {device}")
-            print(f"Type: {type(v)}, Shape: {getattr(v, 'shape', 'N/A')}, Dtype: {getattr(v, 'dtype', 'N/A')}")
-            print(f"Exception: {e}")
-            raise  # Let it crash naturally for a proper traceback
+            print("to device error: {}".format(e))
+            assert 0
+            output[k] = v
     return output
+
+# def to_device(batch, device):
+#     output = {}
+#     for k, v in batch.items():
+#         try:
+#             print(f"[to_device] Moving key '{k}': shape={getattr(v, 'shape', None)}, dtype={getattr(v, 'dtype', None)}")
+#             output[k] = v.to(device)
+#         except Exception as e:
+#             print(f"[ERROR] Failed to move key '{k}' to {device}")
+#             print(f"Type: {type(v)}, Shape: {getattr(v, 'shape', 'N/A')}, Dtype: {getattr(v, 'dtype', 'N/A')}")
+#             print(f"Exception: {e}")
+#             raise  # Let it crash naturally for a proper traceback
+#     return output
 
 
 class MovingAverage:

@@ -274,15 +274,15 @@ def main():
         * args.gradient_accumulation_steps
     )
 
-    ds_config["optimizer"] = {
-        "type": "Adam",
-        "params": {
-            "lr": 1e-5,
-            "betas": [0.9, 0.95],
-            "eps": 1e-8,
-            "weight_decay": 0.0
-        }
-    }
+    # ds_config["optimizer"] = {
+    #     "type": "Adam",
+    #     "params": {
+    #         "lr": 1e-5,
+    #         "betas": [0.9, 0.95],
+    #         "eps": 1e-8,
+    #         "weight_decay": 0.0
+    #     }
+    # }
 
     # If passed along, set the training seed now.
     set_random_seed(args.seed)
@@ -379,13 +379,13 @@ def main():
         model, args.weight_decay, args.lora_learning_rate
     )
 
-    # AdamOptimizer = DeepSpeedCPUAdam if args.offload else FusedAdam
-    # optimizer = AdamOptimizer(
-    #     optimizer_grouped_parameters, lr=args.learning_rate, betas=(0.9, 0.95)
-    # )
-    optimizer = Adam(
-    optimizer_grouped_parameters, lr=args.learning_rate, betas=(0.9, 0.95)
-    )   
+    AdamOptimizer = DeepSpeedCPUAdam if args.offload else FusedAdam
+    optimizer = AdamOptimizer(
+        optimizer_grouped_parameters, lr=args.learning_rate, betas=(0.9, 0.95)
+    )
+    # optimizer = Adam(
+    # optimizer_grouped_parameters, lr=args.learning_rate, betas=(0.9, 0.95)
+    # )   
 
     num_update_steps_per_epoch = math.ceil(
         len(train_dataloader) / args.gradient_accumulation_steps
