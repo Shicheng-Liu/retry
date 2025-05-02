@@ -14,10 +14,10 @@ DEV=1,2
 PORT=1235
 OUTPUT=$1
 ZERO_STAGE=2
-UNLEARN_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/step4_xrlhf_finetuning/opt-1.3b_unlearn.json"
-RETAIN_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/step4_xrlhf_finetuning/opt-1.3b_retain.json"
-EVAL_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/ReMax/dataset/tldr"
-MODEL_NAME=~/workspace/siyuan/ReMax/step1_supervised_finetuning/output/opt-1.3b/tldr
+UNLEARN_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/step4_xrlhf_finetuning/opt-1.3b_tldr_unlearn.json"
+RETAIN_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/step4_xrlhf_finetuning/opt-1.3b_tldr_retain.json"
+EVAL_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/dataset/tldr"
+MODEL_NAME=~/workspace/siyuan/retry/step1_supervised_finetuning/output/opt-1.3b/tldr
 SEED=2023
 
 if [ "$OUTPUT" == "" ]; then

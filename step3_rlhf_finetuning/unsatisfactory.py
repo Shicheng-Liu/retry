@@ -254,7 +254,7 @@ def main():
     for p, s, r in zip(satisfactory_prompts,satisfactory_sft,satisfactory_responses):
         satisfactory_results.append({
             "prompt": p,
-            "sft_response": s,
+            "response": s,
             "satisfactory_response": r
         })
 
@@ -274,7 +274,7 @@ def main():
     for p, s, r in zip(unsatisfactory_prompts,unsatisfactory_sft,unsatisfactory_responses):
         unsatisfactory_results.append({
             "prompt": p,
-            "sft_response": s,
+            "response": s,
             "unsatisfactory_response": r
         })
     
