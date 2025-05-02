@@ -32,6 +32,12 @@ def parse_args():
         required=True,
     )
     parser.add_argument(
+        "--data_name",
+        type=str,
+        help="data name",
+        required=True,
+    )
+    parser.add_argument(
         "--model_name_or_path_xrlhf",
         type=str,
         help="Path to rlhf model",
@@ -228,7 +234,7 @@ def prompt_eval(args, model_xrlhf, tokenizer, device, prompts):
             "prompt": p,
             "response_xrlhf": x
         })
-    with open(f"{args.model_name}_test_result.json","w") as f:
+    with open(f"{args.model_name}_{args.data_name}_test_result.json","w") as f:
         json.dump(test_results,f,indent=2)
         # Note: we use the above simplest greedy search as the baseline. Users can also use other baseline methods,
         # such as beam search, multinomial sampling, and beam-search multinomial sampling.
