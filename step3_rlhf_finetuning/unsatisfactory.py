@@ -191,6 +191,9 @@ def main():
         from safe_rlhf.models import AutoModelForScore
         reward_model = AutoModelForScore.from_pretrained(args.model_name_or_path_reward, torch_dtype=torch.bfloat16, device_map='auto')
         reward_tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path_reward)
+    elif "OpenAssistant" in args.model_name_or_path_reward:
+        reward_model = AutoModelForSequenceClassification.from_pretrained(args.model_name_or_path_reward)
+        reward_tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path_reward)
     else:
         #from huggingface_hub import login
         #login(token="")
