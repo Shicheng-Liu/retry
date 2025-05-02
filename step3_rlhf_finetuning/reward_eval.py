@@ -150,12 +150,20 @@ def opt_reward(prompt,response,reward_model,reward_tokenizer,device,end_of_conve
     with torch.no_grad():
         outputs = reward_model.forward_value(**batch, prompt_length=max(2, num_padding_at_beginning))
         return outputs["chosen_end_scores"].item()
+    
+def OpenAssistant_reward(prompt,response,reward_model,reward_tokenizer,device):
+    input_ids = reward_tokenizer(prompt,response,return_tensors='pt')
+    input_ids = to_device(input_ids,device)
+    reward = reward_model(**input_ids).logits[0].cpu().detach()
+    return reward
        
 def get_reward(prompt,response,reward_model,reward_tokenizer,device,end_of_conversation_token,num_padding_at_beginning,reward_name):
     if "opt" in reward_name:
         reward = opt_reward(prompt,response,reward_model,reward_tokenizer,device,end_of_conversation_token,num_padding_at_beginning)
     if "PKU" in reward_name:
         reward = PKU_reward(prompt,response,reward_model,reward_tokenizer,device)
+    if "OpenAssistant" in reward_name:
+        reward = OpenAssistant_reward(prompt,response,reward_model,reward_tokenizer,device)
     return reward
 
 

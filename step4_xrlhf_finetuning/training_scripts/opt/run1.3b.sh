@@ -14,14 +14,14 @@ DEV=1,2
 PORT=1235
 OUTPUT=$1
 ZERO_STAGE=2
-UNLEARN_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/ReMax/step4_xrlhf_finetuning/opt-1.3b_unlearn.json"
-RETAIN_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/ReMax/step4_xrlhf_finetuning/opt-1.3b_retain.json"
-EVAL_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/ReMax/dataset/Dahoas/full-hh-rlhf"
-MODEL_NAME=~/workspace/siyuan/ReMax/step1_supervised_finetuning/output/opt-1.3b/full-hh-rlhf
+UNLEARN_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/step4_xrlhf_finetuning/opt-1.3b_unlearn.json"
+RETAIN_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/step4_xrlhf_finetuning/opt-1.3b_retain.json"
+EVAL_DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/ReMax/dataset/tldr"
+MODEL_NAME=~/workspace/siyuan/ReMax/step1_supervised_finetuning/output/opt-1.3b/tldr
 SEED=2023
 
 if [ "$OUTPUT" == "" ]; then
-    OUTPUT=./output/opt-1.3b/full-hh-rlhf
+    OUTPUT=./output/opt-1.3b/tldr
 fi
 mkdir -p $OUTPUT
 
