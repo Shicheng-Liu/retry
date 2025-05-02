@@ -11,7 +11,7 @@ export TOKENIZERS_PARALLELISM=False
 
 #~/workspace/siyuan/ReMax/step1_supervised_finetuning/output/opt-1.3b/Dahoas/full-hh-rlhf
 
-DEV=1
+DEV=5
 PORT=1236
 DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/dataset/tldr"
 ACTOR_MODEL_PATH=~/workspace/siyuan/retry/step1_supervised_finetuning/output/opt-1.3b/tldr
