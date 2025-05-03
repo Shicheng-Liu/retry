@@ -268,7 +268,7 @@ def main():
     #         "rejected": s
     #     })
 
-    # with open(f"{args.model_name}_retain.json","w") as f:
+    # with open(f"{args.model_name}_{args.data_name}_retain.json","w") as f:
     #     json.dump(satisfactory_results,f,indent=3)
 
     for p, s, r in zip(unsatisfactory_prompts,unsatisfactory_sft,unsatisfactory_responses):
@@ -281,15 +281,15 @@ def main():
     with open(f"{args.model_name}_{args.data_name}_unsatisfactory.json","w") as f:
         json.dump(unsatisfactory_results,f,indent=3)
 
-    for p, s, r in zip(unsatisfactory_prompts,unsatisfactory_sft,unsatisfactory_responses):
-        unsatisfactory_results.append({
-            "prompt": p,
-            "chosen": s,
-            "rejected": r
-        })
+    # for p, s, r in zip(unsatisfactory_prompts,unsatisfactory_sft,unsatisfactory_responses):
+    #     unsatisfactory_results.append({
+    #         "prompt": p,
+    #         "chosen": s,
+    #         "rejected": r
+    #     })
     
-    with open(f"{args.model_name}_unlearn.json","w") as f:
-        json.dump(unsatisfactory_results,f,indent=3)
+    # with open(f"{args.model_name}_{args.data_name}_unlearn.json","w") as f:
+    #     json.dump(unsatisfactory_results,f,indent=3)
 
         
 
