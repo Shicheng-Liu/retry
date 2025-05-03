@@ -67,7 +67,7 @@ def main():
     #print("loss_type",args.loss_type)
     print("--------------------")
     path_RLHF="/gpuhome/hbz5148/workspace/siyuan/retry/step3_rlhf_finetuning/opt-1.3b_tldr_test_result.json"
-    path_XRLHF="/gpuhome/hbz5148/workspace/siyuan/ReMax/step4_xrlhf_finetuning/opt-1.3b_tldr_test_result.json"
+    path_XRLHF="/gpuhome/hbz5148/workspace/siyuan/retry/step4_xrlhf_finetuning/opt-1.3b_tldr_test_result.json"
 
     RLHF_data = load_dataset("json", data_files=path_RLHF)["train"]
     XRLHF_data = load_dataset("json", data_files=path_XRLHF)["train"]
