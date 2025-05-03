@@ -613,7 +613,7 @@ def main():
             }
             merged_batch = to_device(merged_batch, device)
             outputs = model(**merged_batch, use_cache=False)
-            final_loss = outputs.loss
+            final_loss = - outputs.loss
             # logits = outputs.logits  # (batch_size, seq_len, vocab_size)
             # labels = merged_batch['labels']  # (batch_size, seq_len)
 
