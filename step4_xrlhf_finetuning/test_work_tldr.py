@@ -80,27 +80,28 @@ def main():
     win_rate_list_xrlhf_rlhf = []
 
 
-    for prompt, sft_response, rlhf_response, xrlhf_response in tqdm(zip(prompts, response_sft, response_rlhf, response_xrlhf),total=len(prompts),desc="Evaluation process"):
+    for prompt, sft_response, rlhf_response in tqdm(zip(prompts, response_sft, response_rlhf),total=len(prompts),desc="Evaluation process"):
+    #for prompt, sft_response, rlhf_response, xrlhf_response in tqdm(zip(prompts, response_sft, response_rlhf, response_xrlhf),total=len(prompts),desc="Evaluation process"):
             
         gpt4_prompt_rlhf_sft = build_prompt(prompt, rlhf_response, sft_response)
         gpt_response_rlhf_sft = gpt4_compare(gpt4_prompt_rlhf_sft, args.api_key)
-        # if gpt_response_rlhf_sft:
-        #     comparison, choice = parse_gpt_response(gpt_response_rlhf_sft)
-        #     if choice == '1':
-        #         win_rate_list_rlhf_sft.append(1)
-        #     else:
-        #         win_rate_list_rlhf_sft.append(0)
-        # time.sleep(1) # API speed control
-
-        gpt4_prompt_xrlhf_sft = build_prompt(prompt, xrlhf_response, sft_response)
-        gpt_response_xrlhf_sft = gpt4_compare(gpt4_prompt_xrlhf_sft, args.api_key)
-        if gpt_response_xrlhf_sft:
-            comparison, choice = parse_gpt_response(gpt_response_xrlhf_sft)
+        if gpt_response_rlhf_sft:
+            comparison, choice = parse_gpt_response(gpt_response_rlhf_sft)
             if choice == '1':
-                win_rate_list_xrlhf_sft.append(1)
+                win_rate_list_rlhf_sft.append(1)
             else:
-                win_rate_list_xrlhf_sft.append(0)
+                win_rate_list_rlhf_sft.append(0)
         time.sleep(1) # API speed control
+
+        # gpt4_prompt_xrlhf_sft = build_prompt(prompt, xrlhf_response, sft_response)
+        # gpt_response_xrlhf_sft = gpt4_compare(gpt4_prompt_xrlhf_sft, args.api_key)
+        # if gpt_response_xrlhf_sft:
+        #     comparison, choice = parse_gpt_response(gpt_response_xrlhf_sft)
+        #     if choice == '1':
+        #         win_rate_list_xrlhf_sft.append(1)
+        #     else:
+        #         win_rate_list_xrlhf_sft.append(0)
+        # time.sleep(1) # API speed control
 
         # gpt4_prompt_xrlhf_rlhf = build_prompt(prompt, xrlhf_response, rlhf_response)
         # gpt_response_xrlhf_rlhf = gpt4_compare(gpt4_prompt_xrlhf_rlhf, args.api_key)
@@ -112,8 +113,8 @@ def main():
         #         win_rate_list_xrlhf_rlhf.append(0)
         # time.sleep(1) # API speed control
            
-    #print("RLHF_SFT win rate",1.0*sum(win_rate_list_rlhf_sft)/len(win_rate_list_rlhf_sft))
-    print("XRLHF_SFT win rate",1.0*sum(win_rate_list_xrlhf_sft)/len(win_rate_list_xrlhf_sft))
+    print("RLHF_SFT win rate",1.0*sum(win_rate_list_rlhf_sft)/len(win_rate_list_rlhf_sft))
+    #print("XRLHF_SFT win rate",1.0*sum(win_rate_list_xrlhf_sft)/len(win_rate_list_xrlhf_sft))
     #print("XRLHF_RLHF win rate",1.0*sum(win_rate_list_xrlhf_rlhf)/len(win_rate_list_xrlhf_rlhf))
 
 if __name__ == "__main__":
