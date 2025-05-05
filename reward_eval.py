@@ -234,7 +234,7 @@ def main():
         # reward_finetune_list.append(finetune_reward)
         # reward_rlhf_list.append(rlhf_reward)
         # reward_xrlhf_list.append(xrlhf_reward)
-        if chosen_reward < rejected_reward:
+        if chosen_reward < rejected_reward - 1:
             print('prompt',prompt)
             print('------------------------------')
             print('chosen',chosen_response)
