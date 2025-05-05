@@ -205,8 +205,8 @@ def main():
     new_ds = load_dataset("json", data_files=args.new_data_path)["train"]
     prompts = ds["prompt"]  
     
-    chosen = ds["response_sft"]
-    rejected = ds["response_rlhf"]
+    chosen = ds["chosen"]
+    rejected = ds["rejected"]
     #response_xrlhf = new_ds["response_xrlhf"]
 
     
