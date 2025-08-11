@@ -105,15 +105,15 @@ def load_stuff(model_name_or_path, num_padding_at_beginning,
                additional_special_tokens):
 
     tokenizer = load_hf_tokenizer(model_name_or_path,
-                                  fast_tokenizer=True,
-                                  add_special_tokens=additional_special_tokens)
+                                  fast_tokenizer=True)
     tokenizer.pad_token = tokenizer.eos_token
     model = create_critic_model(model_name_or_path,
                                 tokenizer,
                                 None,
                                 num_padding_at_beginning,
                                 rlhf_training=True,
-                                disable_dropout=True)
+                                disable_dropout=True,
+                                eval_mode=True)
 
     return model, tokenizer
 
@@ -202,46 +202,36 @@ def main():
     # to make it a more meaningful comparison.
     ds = load_dataset("json", data_files=args.data_path)["train"]
     prompts = ds["prompt"]  
-    response_base = ds["response_base"]
+    #response_base = ds["response_base"]
     response_sft = ds["response_sft"]
     response_rlhf = ds["response_rlhf"]
 
     
     
-    reward_base_list = []
+    #reward_base_list = []
     reward_finetune_list = []
     reward_rlhf_list = []
     win_rate_list = []
     sign = 1
-    for prompt, base_response, sft_response, rlhf_response in tqdm(zip(prompts, response_base, response_sft, response_rlhf),total=len(prompts),desc="Evaluation process"):
+    for prompt, sft_response, rlhf_response in tqdm(zip(prompts, response_sft, response_rlhf),total=len(prompts),desc="Evaluation process"):
         
         # print('base_response',base_response)
         # print('sft_response',sft_response)
         # print('rlhf_response',rlhf_response)
 
-        base_reward = get_reward(prompt,base_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
+        #base_reward = get_reward(prompt,base_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
         finetune_reward = get_reward(prompt,sft_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
         rlhf_reward = get_reward(prompt,rlhf_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
 
-        reward_base_list.append(base_reward)
+        #reward_base_list.append(base_reward)
         reward_finetune_list.append(finetune_reward)
         reward_rlhf_list.append(rlhf_reward)
         if rlhf_reward >= finetune_reward:
             win_rate_list.append(1)
         else:
             win_rate_list.append(0)
-        # elif rlhf_reward < finetune_reward:
-        #     win_rate_list.append(0)
-        # elif rlhf_reward == finetune_reward and sign == 1:
-        #     win_rate_list.append(1)
-        #     sign = 0
-        # else:
-        #     win_rate_list.append(0)
-        #     sign = 1
 
-        
-
-    print("reward for base model",np.mean(reward_base_list))
+    #print("reward for base model",np.mean(reward_base_list))
     print("reward for SFT model",np.mean(reward_finetune_list))
     print("reward for rlhf model",np.mean(reward_rlhf_list))
     print("win rate",1.0*sum(win_rate_list)/len(win_rate_list))

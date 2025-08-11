@@ -208,13 +208,13 @@ def main():
     # to make it a more meaningful comparison.
     ds = load_dataset("json", data_files=args.data_path)["train"]
     prompts = ds["prompt"]  
-    response_base = ds["response_base"]
+    #response_base = ds["response_base"]
     response_sft = ds["response_sft"]
     response_rlhf = ds["response_rlhf"]
 
     
     
-    reward_base_list = []
+    #reward_base_list = []
     reward_finetune_list = []
     reward_rlhf_list = []
     win_rate_list = []
@@ -224,17 +224,17 @@ def main():
     satisfactory_responses = []
     unsatisfactory_responses = []
     unsatisfactory_sft = []
-    for prompt, base_response, sft_response, rlhf_response in tqdm(zip(prompts, response_base, response_sft, response_rlhf),total=len(prompts),desc="Evaluation process"):
+    for prompt, sft_response, rlhf_response in tqdm(zip(prompts, response_sft, response_rlhf),total=len(prompts),desc="Evaluation process"):
         
         # print('base_response',base_response)
         # print('sft_response',sft_response)
         # print('rlhf_response',rlhf_response)
 
-        base_reward = get_reward(prompt,base_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
+        #base_reward = get_reward(prompt,base_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
         finetune_reward = get_reward(prompt,sft_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
         rlhf_reward = get_reward(prompt,rlhf_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
 
-        reward_base_list.append(base_reward)
+        #reward_base_list.append(base_reward)
         reward_finetune_list.append(finetune_reward)
         reward_rlhf_list.append(rlhf_reward)
         if rlhf_reward >= finetune_reward:
@@ -261,15 +261,14 @@ def main():
     # with open(f"{args.model_name}_{args.data_name}_satisfactory.json","w") as f:
     #     json.dump(satisfactory_results,f,indent=3)
 
-    for p, s, r in zip(satisfactory_prompts,satisfactory_sft,satisfactory_responses):
+    for p, r in zip(satisfactory_prompts,satisfactory_responses):
         satisfactory_results.append({
             "prompt": p,
-            "chosen": r,
-            "rejected": s
+            "response": r
         })
 
-    with open(f"{args.model_name}_{args.data_name}_retain.json","w") as f:
-        json.dump(satisfactory_results,f,indent=3)
+    with open(f"{args.model_name}_{args.data_name}_satisfactory.json","w") as f:
+        json.dump(satisfactory_results,f,indent=2)
 
     # for p, s, r in zip(unsatisfactory_prompts,unsatisfactory_sft,unsatisfactory_responses):
     #     unsatisfactory_results.append({
@@ -281,19 +280,18 @@ def main():
     # with open(f"{args.model_name}_{args.data_name}_unsatisfactory.json","w") as f:
     #     json.dump(unsatisfactory_results,f,indent=3)
 
-    for p, s, r in zip(unsatisfactory_prompts,unsatisfactory_sft,unsatisfactory_responses):
+    for p, r, in zip(unsatisfactory_prompts,unsatisfactory_responses):
         unsatisfactory_results.append({
             "prompt": p,
-            "chosen": s,
-            "rejected": r
+            "response": r,
         })
     
-    with open(f"{args.model_name}_{args.data_name}_unlearn.json","w") as f:
-        json.dump(unsatisfactory_results,f,indent=3)
+    with open(f"{args.model_name}_{args.data_name}_unsatisfactory.json","w") as f:
+        json.dump(unsatisfactory_results,f,indent=2)
 
         
 
-    print("reward for base model",np.mean(reward_base_list))
+    #print("reward for base model",np.mean(reward_base_list))
     print("reward for SFT model",np.mean(reward_finetune_list))
     print("reward for rlhf model",np.mean(reward_rlhf_list))
     print("win rate",1.0*sum(win_rate_list)/len(win_rate_list))

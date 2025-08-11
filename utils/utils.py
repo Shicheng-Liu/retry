@@ -59,24 +59,31 @@ class MovingAverage:
 
 
 def get_tokenizer(model_name_or_path, fast_tokenizer=True):
-    if "llama" in model_name_or_path:
-        from transformers.models.llama import LlamaTokenizer
+    # if "llama" in model_name_or_path.lower():
+    #     from transformers.models.llama import LlamaTokenizer
+    #     tokenizer = LlamaTokenizer.from_pretrained(
+    #         model_name_or_path, fast_tokenizer=fast_tokenizer, token=
+    #     )
+    #     if tokenizer.pad_token is None:
+    #         # assert tokenizer.eos_token is not None
+    #         tokenizer.add_special_tokens({"pad_token": tokenizer.eos_token})
+    #         # tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+    #         tokenizer.padding_side = "right"
+    # else:
+    #     tokenizer = AutoTokenizer.from_pretrained(
+    #         model_name_or_path, fast_tokenizer=fast_tokenizer
+    #     )
+    #     tokenizer.pad_token = tokenizer.eos_token
+    #     # make sure tokenizer is right pad in our logic
+    #     tokenizer.padding_side = "right"
 
-        tokenizer = LlamaTokenizer.from_pretrained(
-            model_name_or_path, fast_tokenizer=fast_tokenizer
-        )
-        if tokenizer.pad_token is None:
-            # assert tokenizer.eos_token is not None
-            tokenizer.add_special_tokens({"pad_token": tokenizer.eos_token})
-            # tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-            tokenizer.padding_side = "right"
-    else:
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_name_or_path, fast_tokenizer=fast_tokenizer
-        )
-        tokenizer.pad_token = tokenizer.eos_token
-        # make sure tokenizer is right pad in our logic
-        tokenizer.padding_side = "right"
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name_or_path, fast_tokenizer=fast_tokenizer
+    )
+    #if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
+    # make sure tokenizer is right pad in our logic
+    tokenizer.padding_side = "right"
     return tokenizer
 
 
@@ -87,6 +94,12 @@ def load_hf_tokenizer(model_name_or_path, fast_tokenizer=True):
         if os.path.exists(model_json):
             model_json_file = json.load(open(model_json))
             model_name = model_json_file["_name_or_path"]
+            if "pythia-2.8b" in model_name.lower():
+                model_name = "EleutherAI/pythia-2.8b"
+            if "opt-1.3b" in model_name.lower():
+                model_name = "facebook/opt-1.3b"
+            if "llama-7b" in model_name.lower():
+                model_name = "meta-llama/Llama-2-7b-hf"
             tokenizer = get_tokenizer(model_name, fast_tokenizer=fast_tokenizer)
     else:
         tokenizer = get_tokenizer(model_name_or_path, fast_tokenizer=fast_tokenizer)

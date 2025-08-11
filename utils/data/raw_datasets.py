@@ -14,7 +14,7 @@ class PromptRawDataset(object):
         self.output_path = output_path
         self.seed = seed
         self.local_rank = local_rank
-        if "unlearn" in dataset_name or "retain" in dataset_name:
+        if "unlearn" in dataset_name or "retain" in dataset_name or "satisfactory" in dataset_name or "explanation" in dataset_name:
             self.raw_datasets = load_dataset("json", data_files=dataset_name)
         elif not dataset_name == "local/jsonfile":
             self.raw_datasets = load_dataset(dataset_name)
@@ -47,6 +47,8 @@ class PromptRawDataset(object):
 class LocalDataset(PromptRawDataset):
     def __init__(self, output_path, seed, local_rank, dataset_name):
         super().__init__(output_path, seed, local_rank, dataset_name)
+        self.dataset_name = "local"
+        self.dataset_name_clean = "local"
 
     def get_train_data(self):
         return self.raw_datasets["train"]
@@ -102,8 +104,8 @@ class DahoasRmstaticDataset(PromptRawDataset):
 class DahoasFullhhrlhfDataset(PromptRawDataset):
     def __init__(self, output_path, seed, local_rank, dataset_name):
         super().__init__(output_path, seed, local_rank, dataset_name)
-        self.dataset_name = "Dahoas/full-hh-rlhf"
-        self.dataset_name_clean = "Dahoas_full_hh_rlhf"
+        self.dataset_name = "full-hh-rlhf"
+        self.dataset_name_clean = "full_hh_rlhf"
 
     def get_train_data(self):
         return self.raw_datasets["train"]

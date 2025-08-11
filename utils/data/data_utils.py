@@ -21,7 +21,7 @@ IGNORE_INDEX = -100
 
 
 def get_raw_dataset(dataset_name, output_path, seed, local_rank):
-    if "retain" in dataset_name or "unlearn" in dataset_name:
+    if "retain" in dataset_name or "unlearn" in dataset_name or "satisfactory" in dataset_name or "explanation" in dataset_name:
         return raw_datasets.LocalDataset(
             output_path, seed, local_rank, dataset_name
         )
@@ -29,7 +29,7 @@ def get_raw_dataset(dataset_name, output_path, seed, local_rank):
         return raw_datasets.DahoasRmstaticDataset(
             output_path, seed, local_rank, dataset_name
         )
-    elif "Dahoas/full-hh-rlhf" in dataset_name:
+    elif "full-hh-rlhf" in dataset_name:
         return raw_datasets.DahoasFullhhrlhfDataset(
             output_path, seed, local_rank, dataset_name
         )
@@ -501,7 +501,7 @@ def create_prompt_dataset(
         torch.save(train_dataset, train_fname)
         torch.save(eval_dataset, eval_fname)
     torch.distributed.barrier()
-    return torch.load(train_fname), torch.load(eval_fname)
+    return torch.load(train_fname, weights_only=False), torch.load(eval_fname, weights_only=False)
 
 
 class DataCollatorReward:

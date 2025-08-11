@@ -84,17 +84,19 @@ class DeepSpeedReMaxTrainer:
         # This has been added due to a probability/nan error that happens after
         # meta-llama/Llama-2-7b-hf enabled do_sample:
         # https://huggingface.co/meta-llama/Llama-2-7b-hf/commit/6fdf2e60f86ff2481f2241aaee459f85b5b0bbb9
-        # if self.actor_model.module.config.model_type == "llama":
-        #     kwargs = dict(do_sample=False)
-        # else:
-        #     kwargs = dict()
-        kwargs = dict(
-            do_sample=do_sample,
-            top_p=0.9,
-            temperature=1.0,
-        )
+        if self.actor_model.module.config.model_type == "llama":
+            kwargs = dict(do_sample=False)
+        else:
+            kwargs = dict(
+                do_sample=do_sample,
+                top_p=0.9,
+                temperature=1.0,
+            )
 
         with torch.no_grad():
+            # prompts = prompts.cuda()
+            # mask = mask.cuda()
+            # print(prompts.device, mask.device)
             seq = model.module.generate(
                 prompts,
                 attention_mask=mask,

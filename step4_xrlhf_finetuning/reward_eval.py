@@ -37,9 +37,9 @@ def parse_args():
         required=True,
     )
     parser.add_argument(
-        "--new_data_path",
+        "--data_name",
         type=str,
-        help="Path to test prompts",
+        help="data name",
         required=True,
     )
     parser.add_argument(
@@ -105,15 +105,15 @@ def load_stuff(model_name_or_path, num_padding_at_beginning,
                additional_special_tokens):
 
     tokenizer = load_hf_tokenizer(model_name_or_path,
-                                  fast_tokenizer=True,
-                                  add_special_tokens=additional_special_tokens)
+                                  fast_tokenizer=True)
     tokenizer.pad_token = tokenizer.eos_token
     model = create_critic_model(model_name_or_path,
                                 tokenizer,
                                 None,
                                 num_padding_at_beginning,
                                 rlhf_training=True,
-                                disable_dropout=True)
+                                disable_dropout=True,
+                                eval_mode=True)
 
     return model, tokenizer
 
@@ -156,7 +156,16 @@ def OpenAssistant_reward(prompt,response,reward_model,reward_tokenizer,device):
     input_ids = to_device(input_ids,device)
     reward = reward_model(**input_ids).logits[0].cpu().detach()
     return reward
-    
+
+def Skywork_reward(prompt,response,reward_model,reward_tokenizer,device):
+    conv = [{"role": "user", "content": prompt}, {"role": "assistant", "content": response}]
+    conv_formatted = reward_tokenizer.apply_chat_template(conv, tokenize=False)
+    if reward_tokenizer.bos_token is not None and conv_formatted.startswith(reward_tokenizer.bos_token):
+        conv_formatted = conv_formatted[len(reward_tokenizer.bos_token):]
+    conv_tokenized = reward_tokenizer(conv_formatted, return_tensors="pt").to(device)
+    with torch.no_grad():
+        reward = reward_model(**conv_tokenized).logits[0][0].item()
+    return reward
        
 def get_reward(prompt,response,reward_model,reward_tokenizer,device,end_of_conversation_token,num_padding_at_beginning,reward_name):
     if "opt" in reward_name:
@@ -165,6 +174,8 @@ def get_reward(prompt,response,reward_model,reward_tokenizer,device,end_of_conve
         reward = PKU_reward(prompt,response,reward_model,reward_tokenizer,device)
     if "OpenAssistant" in reward_name:
         reward = OpenAssistant_reward(prompt,response,reward_model,reward_tokenizer,device)
+    if "Skywork" in reward_name:
+        reward = Skywork_reward(prompt,response,reward_model,reward_tokenizer,device)
     return reward
 
 
@@ -189,6 +200,9 @@ def main():
     elif "OpenAssistant" in args.model_name_or_path_reward:
         reward_model = AutoModelForSequenceClassification.from_pretrained(args.model_name_or_path_reward)
         reward_tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path_reward)
+    elif "Skywork" in args.model_name_or_path_reward:
+        reward_model = AutoModelForSequenceClassification.from_pretrained(args.model_name_or_path_reward,torch_dtype=torch.bfloat16,device_map=device,attn_implementation="flash_attention_2",num_labels=1,)
+        reward_tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path_reward)
     else:
         #from huggingface_hub import login
         #login(token="")
@@ -202,68 +216,82 @@ def main():
     # Finetuned models have less such issue. Thus following prompts all end with ":"
     # to make it a more meaningful comparison.
     ds = load_dataset("json", data_files=args.data_path)["train"]
-    new_ds = load_dataset("json", data_files=args.new_data_path)["train"]
     prompts = ds["prompt"]  
-    
+    #response_base = ds["response_base"]
     response_sft = ds["response_sft"]
     response_rlhf = ds["response_rlhf"]
-    response_xrlhf = new_ds["response_xrlhf"]
+    response_xrlhf = ds["response_xrlhf"]
 
     
     
-    
+    #reward_base_list = []
     reward_finetune_list = []
     reward_rlhf_list = []
     reward_xrlhf_list = []
-    win_rate_list_rlhf_sft = []
-    win_rate_list_xrlhf_sft = []
-    win_rate_list_xrlhf_rlhf = []
-    
-    for prompt, sft_response, rlhf_response, xrlhf_response in tqdm(zip(prompts, response_sft, response_rlhf, response_xrlhf),total=len(prompts),desc="Evaluation process"):
+    rlhf_sft_win_rate_list = []
+    xrlhf_sft_win_rate_list = []
+    xrlhf_rlhf_win_rate_list = []
+    sign = 1
+    for prompt, sft_response, rlhf_response, xrlhf_response in tqdm(zip(prompts, response_sft, response_rlhf,response_xrlhf),total=len(prompts),desc="Evaluation process"):
         
         # print('base_response',base_response)
         # print('sft_response',sft_response)
         # print('rlhf_response',rlhf_response)
 
-        
+        #base_reward = get_reward(prompt,base_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
         finetune_reward = get_reward(prompt,sft_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
         rlhf_reward = get_reward(prompt,rlhf_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
         xrlhf_reward = get_reward(prompt,xrlhf_response,reward_model,reward_tokenizer,device,args.end_of_conversation_token,args.num_padding_at_beginning,args.model_name_or_path_reward)
 
-        
+        # reward_base_list.append(base_reward)
         reward_finetune_list.append(finetune_reward)
         reward_rlhf_list.append(rlhf_reward)
         reward_xrlhf_list.append(xrlhf_reward)
-        if rlhf_reward >= finetune_reward:
-            win_rate_list_rlhf_sft.append(1)
+
+
+        if rlhf_reward > finetune_reward:
+            rlhf_sft_win_rate_list.append(1)
+        elif rlhf_reward == finetune_reward:
+            rlhf_sft_win_rate_list.append(0.5)
         else:
-            win_rate_list_rlhf_sft.append(0)
-        if xrlhf_reward >= finetune_reward:
-            win_rate_list_xrlhf_sft.append(1)
+            rlhf_sft_win_rate_list.append(0)
+
+        if xrlhf_reward > finetune_reward:
+            xrlhf_sft_win_rate_list.append(1)
+        elif xrlhf_reward == finetune_reward:
+            xrlhf_sft_win_rate_list.append(0.5)
         else:
-            win_rate_list_xrlhf_sft.append(0)
-        if xrlhf_reward >= rlhf_reward:
-            win_rate_list_xrlhf_rlhf.append(1)
+            xrlhf_sft_win_rate_list.append(0)
+
+        if xrlhf_reward > rlhf_reward:
+            xrlhf_rlhf_win_rate_list.append(1)
+        elif xrlhf_reward == rlhf_reward:
+            xrlhf_rlhf_win_rate_list.append(0.5)
         else:
-            win_rate_list_xrlhf_rlhf.append(0)
-        # elif rlhf_reward < finetune_reward:
-        #     win_rate_list.append(0)
-        # elif rlhf_reward == finetune_reward and sign == 1:
-        #     win_rate_list.append(1)
-        #     sign = 0
+            xrlhf_rlhf_win_rate_list.append(0)
+ 
+        # if rlhf_reward >= finetune_reward:
+        #     rlhf_sft_win_rate_list.append(1)
         # else:
-        #     win_rate_list.append(0)
-        #     sign = 1
+        #     rlhf_sft_win_rate_list.append(0)
 
-        
+        # if xrlhf_reward >= finetune_reward:
+        #     xrlhf_sft_win_rate_list.append(1)
+        # else:
+        #     xrlhf_sft_win_rate_list.append(0)
 
-    
+        # if xrlhf_reward >= rlhf_reward:
+        #     xrlhf_rlhf_win_rate_list.append(1)
+        # else:
+        #     xrlhf_rlhf_win_rate_list.append(0)
+
+    #print("reward for base model",np.mean(reward_base_list))
     print("reward for SFT model",np.mean(reward_finetune_list))
     print("reward for rlhf model",np.mean(reward_rlhf_list))
     print("reward for xrlhf model",np.mean(reward_xrlhf_list))
-    print("RLHF_SFT win rate",1.0*sum(win_rate_list_rlhf_sft)/len(win_rate_list_rlhf_sft))
-    print("XRLHF_SFT win rate",1.0*sum(win_rate_list_xrlhf_sft)/len(win_rate_list_xrlhf_sft))
-    print("XRLHF_RLHF win rate",1.0*sum(win_rate_list_xrlhf_rlhf)/len(win_rate_list_xrlhf_rlhf))
+    print("RLHF vs SFT win rate",1.0*sum(rlhf_sft_win_rate_list)/len(rlhf_sft_win_rate_list))
+    print("XRLHF vs SFT win rate",1.0*sum(xrlhf_sft_win_rate_list)/len(xrlhf_sft_win_rate_list))
+    print("XRLHF vs RLHF win rate",1.0*sum(xrlhf_rlhf_win_rate_list)/len(xrlhf_rlhf_win_rate_list))
 
 
 if __name__ == "__main__":

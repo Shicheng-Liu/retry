@@ -1,16 +1,20 @@
 #!/bin/bash
-
-set -e
 set -x
+# export HF_DATASETS_OFFLINE=1
+# export TRANSFORMERS_OFFLINE=1
+# export OMP_NUM_THREADS=4
+# export MKL_NUM_THREADS=4
+# export NUMEXPR_NUM_THREADS=4
+# export OPENBLAS_NUM_THREADS=4
+# export RAYON_NUM_THREADS=20
+# export TOKENIZERS_PARALLELISM=False
 
-export HF_DATASETS_OFFLINE=1
-export TRANSFORMERS_OFFLINE=1
 
-# DeepSpeed Team
-DATA_PATH="/home/znli/datasets/Dahoas/rm-static"
-BASE_PATH="/home/znli/models"
-ACTOR_MODEL_PATH="${BASE_PATH}/llama2_7b_sft"
-REWARD_MODEL_PATH="${BASE_PATH}/llama2_7b_reward"
+DEV=0,1,2,3,4,5,6,7
+PORT=1236
+DATA_PATH="/efs/shicheng/remax/dataset/tldr"
+ACTOR_MODEL_PATH=/efs/shicheng/remax/step1_supervised_finetuning/output/llama-7b/tldr
+REWARD_MODEL_PATH=/efs/shicheng/remax/step2_reward_model_finetuning/output/llama-7b/tldr
 ACTOR_ZERO_STAGE=2
 REWARD_ZERO_STAGE=3
 REFERENCE_ZERO_STAGE=3
@@ -18,8 +22,7 @@ OUTPUT=$1
 SEED=2023
 
 if [ "$OUTPUT" == "" ]; then
-    TIME_STEP=`date "+%Y-%m-%d-%H-%M-%S"`
-    OUTPUT="./log/step3_remax-meta_llama_Llama_2_7b_hf-$TIME_STEP-$SEED"
+    OUTPUT=./output/llama-7b/tldr
 fi
 
 mkdir -p $OUTPUT
@@ -27,22 +30,22 @@ mkdir -p $OUTPUT
 
 ACTOR_LR=1e-6
 
-
-deepspeed --master_port 12346 main.py \
+(deepspeed --include localhost:$DEV --master_port $PORT \
+main.py \
    --algo "remax" \
    --data_path $DATA_PATH \
-   --data_output_path "/tmp/data_files/llama2" \
+   --data_output_path "/tmp/data_files/llama" \
    --data_split 2,4,4 \
    --actor_model_name_or_path $ACTOR_MODEL_PATH \
    --reward_model_name_or_path $REWARD_MODEL_PATH \
-   --num_padding_at_beginning 0 \
-   --per_device_generation_batch_size 1 \
-   --per_device_training_batch_size 1 \
-   --per_device_eval_batch_size 1 \
+   --num_padding_at_beginning 1 \
+   --per_device_generation_batch_size 4 \
+   --per_device_training_batch_size 4 \
+   --per_device_eval_batch_size 4 \
    --generation_batches 1 \
    --ppo_epochs 1 \
-   --max_answer_seq_len 256 \
-   --max_prompt_seq_len 256 \
+   --max_answer_seq_len 512 \
+   --max_prompt_seq_len 512 \
    --actor_learning_rate ${ACTOR_LR} \
    --actor_weight_decay 0.1 \
    --num_train_epochs 1 \
@@ -55,19 +58,15 @@ deepspeed --master_port 12346 main.py \
    --kl_ctl 0.05 \
    --gamma 0.99 \
    --deepspeed \
-   --offload \
-   --offload_reward_model \
-   --offload_reference_model \
-   --actor_bf16 \
-   --reward_bf16 \
    --seed $SEED \
    --actor_zero_stage $ACTOR_ZERO_STAGE \
    --reward_zero_stage $REWARD_ZERO_STAGE \
    --reference_zero_stage $REFERENCE_ZERO_STAGE \
-   --enable_hybrid_engine \
    --output_dir $OUTPUT \
    --enable_tensorboard \
    --print_answers \
    --save_answers \
-   --save_at_final \
-   &> $OUTPUT/training.log
+   --deepspeed --output_dir $OUTPUT) 2>&1 | tee $OUTPUT/training.log
+
+
+#--enable_hybrid_engine \

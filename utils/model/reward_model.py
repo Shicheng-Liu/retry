@@ -154,6 +154,7 @@ class RewardModel(nn.Module):
             **kwargs
         )
         hidden_states = transformer_outputs[0]
+        hidden_states = hidden_states.to(self.v_head.weight.dtype)
         values = self.v_head(hidden_states).squeeze(-1)
         if return_value_only:
             return values
@@ -182,3 +183,52 @@ class RewardModel(nn.Module):
                 "values": values,
                 "chosen_end_scores": torch.stack(chosen_end_scores),
             }
+        
+    def get_embedding(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        past_key_values=None,
+        position_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        return_value_only=False,
+        prompt_length=0,
+        use_cache=False,
+    ):
+        if self.config.model_type == "llama":
+            kwargs = dict()
+        else:
+            kwargs = dict(head_mask=head_mask)
+
+        transformer_outputs = self.rwtranrsformer(
+            input_ids,
+            past_key_values=past_key_values,
+            attention_mask=attention_mask,
+            inputs_embeds=inputs_embeds,
+            use_cache=use_cache,
+            **kwargs
+        )
+
+        hidden_states = transformer_outputs[0]  # (batch_size, seq_len, hidden_size)
+
+        assert (
+            prompt_length > 1
+        ), "prompt_length must be greater than 1 to help select the end token"
+
+        bs = input_ids.size(0)
+        seq_len = input_ids.shape[1]
+        
+        for i in range(bs):
+            input_id = input_ids[i]
+            hs = hidden_states[i]
+
+            # Find the first PAD after prompt_length
+            c_inds = (input_id[prompt_length:] == self.PAD_ID).nonzero()
+            c_ind = (
+                c_inds[0].item() + prompt_length if len(c_inds) > 0 else seq_len - 1
+            )
+
+            last_hidden_state = hs[c_ind]  # (hidden_size,)
+
+        return last_hidden_state

@@ -1,21 +1,22 @@
 #!/bin/bash
 set -x
-export HF_DATASETS_OFFLINE=1
-export TRANSFORMERS_OFFLINE=1
-export OMP_NUM_THREADS=4
-export MKL_NUM_THREADS=4
-export NUMEXPR_NUM_THREADS=4
-export OPENBLAS_NUM_THREADS=4
-export RAYON_NUM_THREADS=20
-export TOKENIZERS_PARALLELISM=False
+# export HF_DATASETS_OFFLINE=1
+# export TRANSFORMERS_OFFLINE=1
+# export OMP_NUM_THREADS=4
+# export MKL_NUM_THREADS=4
+# export NUMEXPR_NUM_THREADS=4
+# export OPENBLAS_NUM_THREADS=4
+# export RAYON_NUM_THREADS=20
+# export TOKENIZERS_PARALLELISM=False
 
 #~/workspace/siyuan/ReMax/step1_supervised_finetuning/output/opt-1.3b/Dahoas/full-hh-rlhf
 
-DEV=5
+DEV=0,1,2,3,4,5,6,7
 PORT=1236
-DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/dataset/tldr"
-ACTOR_MODEL_PATH=~/workspace/siyuan/retry/step1_supervised_finetuning/output/opt-1.3b/tldr
-REWARD_MODEL_PATH=~/workspace/siyuan/retry/step2_reward_model_finetuning/output/opt-1.3b/tldr
+DATA_PATH="/efs/shicheng/remax/dataset/full-hh-rlhf"
+ACTOR_MODEL_PATH=/efs/shicheng/remax/step1_supervised_finetuning/output/opt-1.3b/full-hh-rlhf
+REWARD_MODEL_PATH=/efs/shicheng/remax/step2_reward_model_finetuning/output/opt-1.3b/full-hh-rlhf
+#REWARD_MODEL_PATH=/efs/shicheng/remax/step2_reward_model_finetuning/output/opt-1.3b/full-hh-rlhf
 ACTOR_ZERO_STAGE=2
 REWARD_ZERO_STAGE=3
 REFERENCE_ZERO_STAGE=3
@@ -23,7 +24,7 @@ OUTPUT=$1
 SEED=2023
 
 if [ "$OUTPUT" == "" ]; then
-    OUTPUT=./output/opt-1.3b/tldr
+    OUTPUT=./output/opt-1.3b/full-hh-rlhf
 fi
 
 mkdir -p $OUTPUT
@@ -45,8 +46,8 @@ main.py \
    --per_device_eval_batch_size 4 \
    --generation_batches 1 \
    --ppo_epochs 1 \
-   --max_answer_seq_len 256 \
-   --max_prompt_seq_len 256 \
+   --max_answer_seq_len 512 \
+   --max_prompt_seq_len 512 \
    --actor_learning_rate ${ACTOR_LR} \
    --actor_weight_decay 0.1 \
    --num_train_epochs 1 \

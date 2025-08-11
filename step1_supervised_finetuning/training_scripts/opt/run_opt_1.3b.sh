@@ -2,24 +2,24 @@
 
 set -x
 
-export OMP_NUM_THREADS=4
-export MKL_NUM_THREADS=4
-export NUMEXPR_NUM_THREADS=4
-export OPENBLAS_NUM_THREADS=4
-export RAYON_NUM_THREADS=20
-export TOKENIZERS_PARALLELISM=False
+# export OMP_NUM_THREADS=4
+# export MKL_NUM_THREADS=4
+# export NUMEXPR_NUM_THREADS=4
+# export OPENBLAS_NUM_THREADS=4
+# export RAYON_NUM_THREADS=20
+# export TOKENIZERS_PARALLELISM=False
 
 
-DEV=1
+DEV=1,2,3,4
 PORT=1235
 OUTPUT=$1
 ZERO_STAGE=2
-DATA_PATH="/gpuhome/hbz5148/workspace/siyuan/retry/dataset/tldr"
+DATA_PATH="/efs/shicheng/remax/dataset/full-hh-rlhf"
 MODEL_NAME="facebook/opt-1.3b"
 SEED=2023
 
 if [ "$OUTPUT" == "" ]; then
-    OUTPUT=./output/opt-1.3b/tldr
+    OUTPUT=./output/opt-1.3b/full-hh-rlhf
 fi
 mkdir -p $OUTPUT
 
@@ -27,7 +27,7 @@ mkdir -p $OUTPUT
 (deepspeed --include localhost:$DEV --master_port $PORT \
 main.py \
    --data_path $DATA_PATH \
-   --data_output_path "/tmp/data_files/opt" \
+   --data_output_path "/efs/shicheng/remax/output_data/opt" \
    --data_split 2,4,4 \
    --model_name_or_path $MODEL_NAME \
    --per_device_train_batch_size 16 \

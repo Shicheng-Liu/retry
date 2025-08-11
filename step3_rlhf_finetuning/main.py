@@ -500,6 +500,8 @@ def create_datasets(args, tokenizer, train_phase=3):
     )
     num_total_iters = int(args.num_train_epochs * num_update_steps_per_epoch)
 
+    
+
     return (
         prompt_train_dataloader,
         prompt_eval_dataloader,
@@ -660,6 +662,10 @@ def evaluation_by_ppl(trainer, eval_dataloader, device):
     tokenizer = trainer.tokenizer
 
     losses = 0
+
+    if len(eval_dataloader.dataset) == 0:
+        return 0
+
     for step, batch in enumerate(eval_dataloader):
         trainer.train()
         with torch.no_grad():
